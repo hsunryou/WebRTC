@@ -30,17 +30,17 @@ function login() {
             sockets: [socket]
         });
 
-    // соединяемся с астером
+    // connect to aster
     this._ua.on('connecting', () => {
         console.log("UA connecting");
     });
 
-    // соединились с астером
+    // connected to aster
     this._ua.on('connected', () => {
         console.log("UA connected");
     });
 
-    // астер нас зарегал, теперь можно звонить и принимать звонки
+    // aster registered us, now you can make and receive calls
     this._ua.on('registered', () => {
         console.log("UA registered");
 
@@ -52,17 +52,17 @@ function login() {
         $("#callPanel").removeClass('d-none');
     });
 
-    // астер про нас больше не знает
+    // master doesn't know about us anymore
     this._ua.on('unregistered', () => {
         console.log("UA unregistered");
     });
 
-    // астер не зарегал нас, что то не то, скорее всего неверный логин или пароль
+    // aster did not log us in, something is wrong, most likely an incorrect username or password
     this._ua.on('registrationFailed', (data) => {
         console.error("UA registrationFailed", data.cause);
     });
 
-    // заводим шарманку
+    // I'm seducing a charming woman
     this._ua.start();
 }
 
@@ -76,7 +76,7 @@ function logout() {
 
     $("#callPanel").addClass('d-none');
 
-    // закрываем всё нафиг, вылогиниваемся из астера, закрываем коннект
+    // close everything nafig, log out of the aster, close the connection
     this._ua.stop();
 }
 
@@ -87,28 +87,28 @@ function call() {
     this.callButton.addClass('d-none');
     this.hangUpButton.removeClass('d-none');
 
-    // Делаем ИСХОДЯЩИЙ звонок
-    // Принимать звонки этот код не умеет!
+    // Make an OUTGOING call
+    // This code can't receive calls!
     this.session = this._ua.call(number, {
         pcConfig:
         {
-            hackStripTcp: true, // Важно для хрома, чтоб он не тупил при звонке
-            rtcpMuxPolicy: 'negotiate', // Важно для хрома, чтоб работал multiplexing. Эту штуку обязательно нужно включить на астере.
+            hackStripTcp: true, // It's important for chrome not to be stupid when calling
+            rtcpMuxPolicy: 'negotiate', // Important for chrome to make multiplexing work. This thing must be enabled on the aster.
             iceServers: []
         },
         mediaConstraints:
         {
-            audio: true, // Поддерживаем только аудио
+            audio: true, // Only support audio
             video: false
         },
         rtcOfferConstraints:
         {
-            offerToReceiveAudio: 1, // Принимаем только аудио
+            offerToReceiveAudio: 1, // Only accept audio
             offerToReceiveVideo: 0
         }
     });
 
-    // Это нужно для входящего звонка, пока не используем
+    // This is needed for an incoming call, until we use
     this._ua.on('newRTCSession', (data) => {
         if (!this._mounted)
             return;
@@ -119,12 +119,12 @@ function call() {
         // audioPlayer.play('ringing');
     });
 
-    // Астер нас соединил с абонентом
+    // Aster connected us to the subscriber
     this.session.on('connecting', () => {
         console.log("UA session connecting");
         playSound("ringback.ogg", true);
 
-        // Тут мы подключаемся к микрофону и цепляем к нему поток, который пойдёт в астер
+        // Here we connect to the microphone and hook the stream to it, which will go to the aster
         let peerconnection = this.session.connection;
         let localStream = peerconnection.getLocalStreams()[0];
 
@@ -139,7 +139,7 @@ function call() {
             localAudioControl.srcObject = this._localClonedStream;
         }
 
-        // Как только астер отдаст нам поток абонента, мы его засунем к себе в наушники
+        // As soon as the aster gives us the subscriber's stream, we put it in our headphones
         peerconnection.addEventListener('addstream', (event) => {
             console.log("UA session addstream");
 
@@ -148,13 +148,13 @@ function call() {
         });
     });
 
-    // В процессе дозвона
+    // In the process of dialing
     this.session.on('progress', () => {
         console.log("UA session progress");
         playSound("ringback.ogg", true);
     });
 
-    // Дозвон завершился неудачно, например, абонент сбросил звонок
+    // Dialing failed, for example, the subscriber dropped the call
     this.session.on('failed', (data) => {
         console.log("UA session failed");
         stopSound("ringback.ogg");
@@ -164,7 +164,7 @@ function call() {
         this.hangUpButton.addClass('d-none');
     });
 
-    // Поговорили, разбежались
+    // We talked, ran away
     this.session.on('ended', () => {
         console.log("UA session ended");
         playSound("rejected.mp3", false);
@@ -174,7 +174,7 @@ function call() {
         this.hangUpButton.addClass('d-none');
     });
 
-    // Звонок принят, моно начинать говорить
+    // Call accepted, mono start talking
     this.session.on('accepted', () => {
         console.log("UA session accepted");
         stopSound("ringback.ogg");
