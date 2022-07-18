@@ -17,14 +17,13 @@ function login() {
     this.callButton = $('#callNumberButton');
     this.hangUpButton = $('#hangUpButton');
 
-
     localStorage.setItem("login", this.loginText.val());
     localStorage.setItem("pwd", this.passwordText.val());
 
-    socket = new JsSIP.WebSocketInterface("wss://YOUR_SERVER:PORT/ws");
+    socket = new JsSIP.WebSocketInterface("wss://ippbx.mediacall.co.kr:8089/ws");
     _ua = new JsSIP.UA(
         {
-            uri: "sip:" + this.loginText.val() + "@YOUR_SERVER",
+            uri: "sip:" + this.loginText.val() + "@ippbx.mediacall.co.kr",
             password: this.passwordText.val(),
             display_name: this.loginText.val(),
             sockets: [socket]
@@ -80,6 +79,7 @@ function logout() {
     this._ua.stop();
 }
 
+
 function call() {
     let number = $('#callNumberText').val();
     localStorage.setItem("callNumber", number);
@@ -90,19 +90,16 @@ function call() {
     // Make an OUTGOING call
     // This code can't receive calls!
     this.session = this._ua.call(number, {
-        pcConfig:
-        {
+        pcConfig: {
             hackStripTcp: true, // It's important for chrome not to be stupid when calling
             rtcpMuxPolicy: 'negotiate', // Important for chrome to make multiplexing work. This thing must be enabled on the aster.
             iceServers: []
         },
-        mediaConstraints:
-        {
+        mediaConstraints: {
             audio: true, // Only support audio
             video: false
         },
-        rtcOfferConstraints:
-        {
+        rtcOfferConstraints: {
             offerToReceiveAudio: 1, // Only accept audio
             offerToReceiveVideo: 0
         }
